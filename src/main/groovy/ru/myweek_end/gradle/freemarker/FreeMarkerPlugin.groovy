@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright © 2016. Все права защищены.
  * company: Моя неделя завершилась <https://myweek-end.ru/>
  * author: Алексей Кляузер <alexey.abak@yandex.ru>
@@ -35,4 +35,14 @@
  * вместе с этой программой. Если это не так, см.
  * <http://www.gnu.org/licenses/>.
  */
- rootProject.name = 'freemarker'
+package ru.myweek_end.gradle.freemarker
+
+import org.gradle.api.Project
+import org.gradle.api.Plugin
+
+class FreeMarkerPlugin implements Plugin<Project> {
+
+    void apply(Project target) {
+    }
+
+}

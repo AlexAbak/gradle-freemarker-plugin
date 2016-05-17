@@ -1,4 +1,64 @@
-apply plugin: 'groovy'
+/**
+ * Copyright © 2016. Все права защищены.
+ * company: Моя неделя завершилась <https://myweek-end.ru/>
+ * author: Алексей Кляузер <alexey.abak@yandex.ru>
+ *
+ * This file is part of "FreeMarker для Gradle".
+ *
+ * "FreeMarker для Gradle" is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * "FreeMarker для Gradle" is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with "FreeMarker для Gradle".  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Этот файл — часть "FreeMarker для Gradle".
+ *
+ * "FreeMarker для Gradle" - свободная программа: вы можете перераспространять ее и/или
+ * изменять ее на условиях Афферо Стандартной общественной лицензии GNU в
+ * том виде, в каком она была опубликована Фондом свободного программного
+ * обеспечения; либо версии 3 лицензии, либо (по вашему выбору) любой более
+ * поздней версии.
+ *
+ * "FreeMarker для Gradle" распространяется в надежде, что она будет полезной, но БЕЗО
+ * ВСЯКИХ ГАРАНТИЙ; даже без неявной гарантии ТОВАРНОГО ВИДА или ПРИГОДНОСТИ
+ * ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Афферо Стандартной общественной
+ * лицензии GNU.
+ *
+ * Вы должны были получить копию Афферо Стандартной общественной лицензии GNU
+ * вместе с этой программой. Если это не так, см.
+ * <http://www.gnu.org/licenses/>.
+ */
+plugins {
+    id "com.palantir.git-version" version "0.5.1"
+    id "com.github.hierynomus.license" version "0.12.1"
+    id 'maven-publish'
+    id 'groovy'
+}
+
+def details = versionDetails()
+
+group = 'ru.myweek-end.gradle'
+version = "${details.lastTag}.${details.commitDistance}"
+
+def pomurl = 'https://myweek-end.ru/'
+def pomname = 'FreeMarker для Gradle'
+description = 'Gradle Plugin для использования обработчика шаблонов FreeMarker'
+def organizationname = 'Моя неделя завершилась'
+def organizationurl = pomurl
+def developername = 'Алексей Кляузер'
+def developermail = 'alexey.abak@yandex.ru'
+def developerurl = 'http://alexabak.github.io/'
+def developertimezone = 'MSK (UTC+3)'
+def licensename = 'GNU Affero General Public License v3'
+def licenseurl = 'http://www.gnu.org/licenses/agpl-3.0.html'
+def inceptionYear = '2016'
 
 repositories {
     mavenCentral()
@@ -11,3 +71,102 @@ dependencies {
     compile group: 'org.freemarker', name: 'freemarker', version: '2.3.23'
 }
 
+license {
+    ext.inceptionYear = inceptionYear
+    ext.organizationname = organizationname
+    ext.organizationurl = organizationurl
+    ext.authorname = developername
+    ext.authormail = developermail
+    ext.name = '"' + pomname + '"'
+
+    header rootProject.file('src/main/license/header.txt')
+    mapping('gradle', 'JAVADOC_STYLE')
+    mapping('txt', 'TEXT')
+    strictCheck true
+}
+
+task licenseFormatGradle (type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree(dir: '.').include('**/*.gradle')
+}
+task licenseFormatPom (type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree(dir: 'src/main/license').include('**/*.txt')
+}
+licenseFormat.dependsOn licenseFormatPom
+licenseFormat.dependsOn licenseFormatGradle
+processResources.dependsOn licenseFormat
+
+def appendNode (document, element, name) {
+  def child = document.createElement(name)
+  element.appendChild(child)
+  return child
+}
+
+def appendNode (document, element, name, value) {
+  def child = document.createElement(name)
+  child.appendChild(document.createTextNode(value))
+  element.appendChild(child)
+  return child
+}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+
+      for (def f : jar.outputs.getFiles()) {
+        artifact f;
+      }
+
+      pom.withXml {
+        def element = asElement()
+        def document = element.getOwnerDocument()
+        element.insertBefore(document.createComment(file('src/main/license/pom.txt').text.replace('====', '')), element.getFirstChild())
+        appendNode(document, element, 'url', pomurl) 
+        appendNode(document, element, 'name', pomname)
+        appendNode(document, element, 'description', description)
+        def organization = appendNode(document, element, 'organization')
+        appendNode(document, organization, 'name', organizationname)
+        appendNode(document, organization, 'url', organizationurl)
+        def developers = appendNode(document, element, 'developers')
+        def developer = appendNode(document, developers, 'developer')
+        appendNode(document, developer, 'name', developername);
+        appendNode(document, developer, 'email', developermail);
+        appendNode(document, developer, 'url', developerurl);
+        appendNode(document, developer, 'organization', organizationname)
+        appendNode(document, developer, 'organizationUrl', organizationurl)
+        appendNode(document, developer, 'timezone', developertimezone)
+        def licenses = appendNode(document, element, 'licenses')
+        def license = appendNode(document, licenses, 'license')
+        appendNode(document, license, 'name', licensename)
+        appendNode(document, license, 'url', licenseurl)
+        appendNode(document, element, 'inceptionYear', inceptionYear)
+        
+        def dependencies = appendNode(document, element, 'dependencies')
+        def dependency = appendNode(document, dependencies, 'dependency')
+        appendNode(document, dependency, 'groupId', 'org.freemarker')
+        appendNode(document, dependency, 'artifactId', 'freemarker')
+        appendNode(document, dependency, 'version', '2.3.23')
+        appendNode(document, dependency, 'type', 'jar')
+        appendNode(document, dependency, 'scope', 'compile')
+      }
+    }
+  }
+  repositories {
+    maven {
+      url myweekendurl
+      credentials {
+        username myweekendusername
+        password myweekendpassword
+      }
+    }
+  }
+}
+
+publish.dependsOn build
+publishToMavenLocal.dependsOn build
+
+task install {
+  description 'Publishes all Maven publications produced by this project to the local Maven cache'
+  group 'Publishing'
+
+  dependsOn publishToMavenLocal
+}
