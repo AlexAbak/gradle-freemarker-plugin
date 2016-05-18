@@ -35,13 +35,13 @@
  * вместе с этой программой. Если это не так, см.
  * <http://www.gnu.org/licenses/>.
  */
-package ru.myweek_end.gradle.freemarker
+package ru.myweek_end
 
 import org.junit.Test
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.api.Project
 import static org.junit.Assert.*
-import ru.myweek_end.gradle.freemarker.FreeMarkerTask
+import ru.myweek_end.FreeMarkerTask
 
 class FreeMarkerTaskTest {
 

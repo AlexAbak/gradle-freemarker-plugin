@@ -35,10 +35,11 @@
  * вместе с этой программой. Если это не так, см.
  * <http://www.gnu.org/licenses/>.
  */
-package ru.myweek_end.gradle.freemarker
+package ru.myweek_end
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
+import ru.myweek_end.FreeMarkerTask
 
 class FreeMarkerPlugin implements Plugin<Project> {
 
