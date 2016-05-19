@@ -37,13 +37,31 @@
  */
 package ru.myweek_end
 
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+
 import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.Task
+
+import org.gradle.api.tasks.Copy
+
+import ru.myweek_end.FreeMarkerExtension
+
 import ru.myweek_end.FreeMarkerTask
 
 class FreeMarkerPlugin implements Plugin<Project> {
 
-    void apply(Project target) {
-    }
+  protected Project project
+  protected FreeMarkerExtension extension
+
+  protected copyTask
+
+  void apply(Project project) {
+    this.project = project
+    this.extension = FreeMarkerExtension.getExtension(project)
+    this.project.getPluginManager().apply('base')
+    this.copyTask = FreeMarkerExtension.getCopyTask(project, this.extension);
+  }
 
 }

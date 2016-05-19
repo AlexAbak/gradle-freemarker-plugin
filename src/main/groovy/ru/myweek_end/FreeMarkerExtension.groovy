@@ -37,8 +37,52 @@
  */
 package ru.myweek_end
 
+import org.gradle.api.Project
+import org.gradle.api.Task
+
+import org.gradle.api.tasks.Copy
+
 class FreeMarkerExtension {
 
-    File templateDir
+  File srcDir
+
+  File binDir
+
+  File libsDir
+
+  static FreeMarkerExtension getExtension(Project project) {
+    def extension = project.extensions.findByType(FreeMarkerExtension)
+    if (extension == null) {
+      extension = project.extensions.create('freemarker', FreeMarkerExtension)
+      extension.with {
+        srcDir = new File(project.projectDir, 'src/main/freemarker')
+        binDir = new File(project.buildDir, 'freemarker')
+        libsDir = new File(project.buildDir, 'libs')
+      }
+      project.configurations {
+	    freemarker
+	  }
+    }
+    return extension
+  }
+
+  static Task getCopyTask(Project project, FreeMarkerExtension extension) {
+    def taskName = 'freemarkerCopy'
+    def task = project.tasks.findByPath(taskName)
+    if (task == null) {
+      Map<String, ?> args = new HashMap<String, ?>()
+      args.put('type', Copy)
+      args.put('group', 'Build')
+      args.put('description', 'Copy template files')
+      task = project.task( args,  taskName )
+      task.into(extension.binDir).from(extension.srcDir)
+      project.afterEvaluate {
+        for ( def f : project.configurations.getByName('freemarker').getFiles()  ) {
+          task.into(extension.binDir).from(project.tarTree(f))
+        }
+      }
+    }
+    return task
+  }
 
 }

@@ -42,6 +42,9 @@ import org.gradle.api.logging.Logging
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.Task
+
+import org.gradle.api.tasks.Copy
 
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Compression
@@ -50,43 +53,50 @@ import ru.myweek_end.FreeMarkerExtension
 
 class FreeMarkerLibPlugin implements Plugin<Project> {
 
-    private static Logger logger = Logging.getLogger(FreeMarkerLibPlugin)
+  private static Logger logger = Logging.getLogger(FreeMarkerLibPlugin)
 
-    protected Project project
-    protected FreeMarkerExtension extension
+  protected Project project
+  protected FreeMarkerExtension extension
 
-    def baseTaskName = 'freemarker'
+  def baseTaskName = 'freemarker'
 
-    void apply(Project project) {
-        this.project = project
-        this.extension = createExtension()
+  protected copyTask
+  protected packTask
+  protected baseTask
 
-        def baseTask = project.task(baseTaskName)
+  void apply(Project project) {
+    this.project = project
+    this.extension = this.extension = FreeMarkerExtension.getExtension(project)
+    this.project.getPluginManager().apply('base')
+    this.copyTask = FreeMarkerExtension.getCopyTask(project, this.extension);
+    this.packTask = createPackTask()
+    this.baseTask = createBaseTask()
+  }
 
-        def args = new HashMap<String, ?>()
-        args.put('type', Tar)
-        args.put('group', 'Build')
-        args.put('description', 'Archive template files')
-        def basePackTask = project.task( args,  "${baseTaskName}Pack" )
-        basePackTask.into('templates').from(this.extension.templateDir)
-        basePackTask.compression Compression.GZIP
-        basePackTask.classifier = 'src'
-        basePackTask.extension = 'tar.gz'
-        basePackTask.destinationDir = this.project.buildDir
-
-        this.project.afterEvaluate {
-            basePackTask.setBaseName(this.project.getGroup() + '-' + this.project.getVersion())
-        }
-
+  protected Task createPackTask() {
+    Map<String, ?> args = new HashMap<String, ?>()
+    args.put('type', Tar)
+    args.put('group', 'Build')
+    args.put('description', 'Archive template files')
+    Task packTask = project.task( args,  this.baseTaskName + 'Pack' )
+    packTask.into('').from(this.extension.binDir)
+    packTask.compression Compression.GZIP
+    packTask.extension = 'tar.gz'
+    packTask.destinationDir = this.extension.libsDir
+    packTask.dependsOn this.copyTask
+    this.project.afterEvaluate {
+      packTask.setBaseName(this.project.getGroup() + '-' + this.project.getVersion())
     }
+    return packTask
+  }
 
-    protected FreeMarkerExtension createExtension() {
-        extension = project.extensions.create(baseTaskName, FreeMarkerExtension)
-        extension.with {
-            templateDir = new File(this.project.projectDir, 'src/main/templates')
-        }
-        logger.info("Adding freemarker extension");
-        return extension
-    }
+  protected Task createBaseTask() {
+    Map<String, ?> args = new HashMap<String, ?>()
+    args.put('group', 'Build')
+    args.put('description', 'Create template library')
+    Task baseTask = project.task(args, this.baseTaskName + 'Lib')
+    baseTask.dependsOn this.packTask
+    return baseTask
+  }
 
 }

@@ -51,12 +51,16 @@ import freemarker.template.Configuration
 import freemarker.template.Template
 
 import java.util.Set
-import java.util.Iterator 
+import java.util.Iterator
+
+import ru.myweek_end.FreeMarkerExtension 
 
 class FreeMarkerTask extends DefaultTask {
 
+    FreeMarkerExtension extension = FreeMarkerExtension.getExtension( getProject() )
+
     @InputDirectory
-    File templateDir = new File(getProject().projectDir, 'src/main/templates')
+    File templateDir = extension.binDir
 
     @InputFiles
     FileCollection templates
