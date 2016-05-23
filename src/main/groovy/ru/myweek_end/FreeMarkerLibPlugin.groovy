@@ -82,6 +82,7 @@ class FreeMarkerLibPlugin implements Plugin<Project> {
     packTask.into('').from(this.extension.binDir)
     packTask.compression Compression.GZIP
     packTask.extension = 'tar.gz'
+    packTask.classifier = 'freemarker'
     packTask.destinationDir = this.extension.libsDir
     packTask.dependsOn this.copyTask
     this.project.afterEvaluate {

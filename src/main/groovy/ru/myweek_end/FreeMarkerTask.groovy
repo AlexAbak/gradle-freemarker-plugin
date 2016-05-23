@@ -37,7 +37,12 @@
  */
 package ru.myweek_end
 
+import java.util.Map
+import java.util.HashMap
+
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
+import org.gradle.api.Task
 
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.InputDirectory
@@ -57,35 +62,50 @@ import ru.myweek_end.FreeMarkerExtension
 
 class FreeMarkerTask extends DefaultTask {
 
-    FreeMarkerExtension extension = FreeMarkerExtension.getExtension( getProject() )
+  FreeMarkerExtension extension = FreeMarkerExtension.getExtension( getProject() )
 
-    @InputDirectory
-    File templateDir = extension.binDir
+  @InputDirectory
+  File templateDir = extension.binDir
 
-    @InputFiles
-    FileCollection templates
+  @InputFiles
+  FileCollection templates
 
-    @OutputFiles
-    FileCollection results
+  @OutputFiles
+  FileCollection results
 
-    @Input
-    Object model
+  @Input
+  Map<String, ?> model = new HashMap<String, ?>()
 
-    @TaskAction
-    def make() {
-        Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
-        cfg.setDirectoryForTemplateLoading(templateDir);
-        cfg.setDefaultEncoding("UTF-8");
+  @TaskAction
+  def make() {
+    Configuration cfg = new Configuration(Configuration.VERSION_2_3_23)
+    cfg.setDirectoryForTemplateLoading(templateDir)
+    cfg.setDefaultEncoding("UTF-8")
 
-        Iterator<File> templateIterator = templates.iterator();
-        Iterator<File> resultIterator = results.iterator();
-        while ((templateIterator.hasNext()) && (resultIterator.hasNext())) {
-            File template = templateIterator.next()
-            File result = resultIterator.next()
-            Template temp = cfg.getTemplate(template.getName());
-            Writer out = new FileWriter(result);
-            temp.process(model, out);
-        }
+    Iterator<File> templateIterator = templates.iterator()
+    Iterator<File> resultIterator = results.iterator()
+    while ((templateIterator.hasNext()) && (resultIterator.hasNext())) {
+      File template = templateIterator.next()
+      File result = resultIterator.next()
+      String name = project.projectDir.toPath().relativize( template.toPath() ).toString()
+      Template temp = cfg.getTemplate(name)
+      Writer out = new FileWriter(result)
+      temp.process(model, out)
     }
+  }
+
+  static Task getTask(Project project, FreeMarkerExtension extension, Task copyTask) {
+    def taskName = 'freemarker'
+    def task = project.tasks.findByPath(taskName)
+    if (task == null) {
+      Map<String, ?> args = new HashMap<String, ?>()
+      args.put('type', FreeMarkerTask)
+      args.put('group', 'Build')
+      args.put('description', 'Apply template files')
+      task = project.task( args,  taskName )
+      task.dependsOn(copyTask)
+    }
+    return task
+  }
 
 }

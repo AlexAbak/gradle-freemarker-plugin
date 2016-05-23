@@ -54,14 +54,15 @@ class FreeMarkerPlugin implements Plugin<Project> {
 
   protected Project project
   protected FreeMarkerExtension extension
-
-  protected copyTask
+  protected Task copyTask
+  protected Task freemarkerTask
 
   void apply(Project project) {
     this.project = project
-    this.extension = FreeMarkerExtension.getExtension(project)
+    this.extension = FreeMarkerExtension.getExtension(this.project)
     this.project.getPluginManager().apply('base')
-    this.copyTask = FreeMarkerExtension.getCopyTask(project, this.extension);
+    this.copyTask = FreeMarkerExtension.getCopyTask(this.project, this.extension)
+    this.freemarkerTask = FreeMarkerTask.getTask(this.project, this.extension, this.copyTask)
   }
 
 }
