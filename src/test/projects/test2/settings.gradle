@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright © 2016. Все права защищены.
  * company: Моя неделя завершилась <https://myweek-end.ru/>
  * author: Алексей Кляузер <alexey.abak@yandex.ru>
@@ -35,42 +35,4 @@
  * вместе с этой программой. Если это не так, см.
  * <http://www.gnu.org/licenses/>.
  */
-package ru.myweek_end
-
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
-
-import org.gradle.api.Project
-import org.gradle.api.Plugin
-import org.gradle.api.Task
-
-import org.gradle.api.tasks.Copy
-
-import ru.myweek_end.FreeMarkerExtension
-
-import ru.myweek_end.FreeMarkerTask
-
-class FreeMarkerPlugin implements Plugin<Project> {
-
-  protected Project project
-  protected FreeMarkerExtension extension
-  protected Task copyTask
-  protected Task freemarkerTask
-
-  void apply(Project project) {
-    this.project = project
-    this.project.buildscript{
-      repositories {
-        mavenCentral()
-      }
-      dependencies {
-        //classpath group: 'org.freemarker', name: 'freemarker', version: '2.3.23'
-      }
-    }
-    this.extension = FreeMarkerExtension.getExtension(this.project)
-    this.project.getPluginManager().apply('base')
-    this.copyTask = FreeMarkerExtension.getCopyTask(this.project, this.extension)
-    this.freemarkerTask = FreeMarkerTask.getTask(this.project, this.extension, this.copyTask)
-  }
-
-}
+rootProject.name = 'test2'

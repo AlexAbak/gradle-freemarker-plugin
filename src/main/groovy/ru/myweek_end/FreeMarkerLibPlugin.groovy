@@ -58,8 +58,6 @@ class FreeMarkerLibPlugin implements Plugin<Project> {
   protected Project project
   protected FreeMarkerExtension extension
 
-  def baseTaskName = 'freemarker'
-
   protected copyTask
   protected packTask
   protected baseTask
@@ -78,16 +76,13 @@ class FreeMarkerLibPlugin implements Plugin<Project> {
     args.put('type', Tar)
     args.put('group', 'Build')
     args.put('description', 'Archive template files')
-    Task packTask = project.task( args,  this.baseTaskName + 'Pack' )
+    Task packTask = project.task( args,  'freemarkerPack' )
     packTask.into('').from(this.extension.binDir)
     packTask.compression Compression.GZIP
     packTask.extension = 'tar.gz'
     packTask.classifier = 'freemarker'
     packTask.destinationDir = this.extension.libsDir
     packTask.dependsOn this.copyTask
-    this.project.afterEvaluate {
-      packTask.setBaseName(this.project.getGroup() + '-' + this.project.getVersion())
-    }
     return packTask
   }
 
@@ -95,7 +90,7 @@ class FreeMarkerLibPlugin implements Plugin<Project> {
     Map<String, ?> args = new HashMap<String, ?>()
     args.put('group', 'Build')
     args.put('description', 'Create template library')
-    Task baseTask = project.task(args, this.baseTaskName + 'Lib')
+    Task baseTask = project.task(args, 'freemarkerLib')
     baseTask.dependsOn this.packTask
     return baseTask
   }
